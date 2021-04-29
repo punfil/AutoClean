@@ -1,0 +1,136 @@
+#!/bin/bash
+
+BIEZACY_KATALOG="."
+
+Pomoc(){
+	man ./$PLIK_Z_MANUALEM
+}
+
+Wersja(){
+	if [ $OKIENKOWY -eq 1 ]; then
+		zenity --info --title "Wynik wyszukiwania" --text "Plik zostal odnaleziony!" --width 200
+	else
+		echo "Wersja programu: $WERSJA"
+	fi
+}
+
+AutoCleanRozszerzenie(){
+	local I=0
+	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
+	local ALL_FILES=($BIEZACY_KATALOG/*)
+	while [ $I -lt $ILOSC_LINII ]; do
+		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
+		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
+			local ROZSZERZENIE=$(echo $OBECNY | awk -F. '{print $NF}')
+			if [ ! -d "$BIEZACY_KATALOG/Pliki $ROZSZERZENIE" ]; then
+				mkdir "$BIEZACY_KATALOG/Pliki $ROZSZERZENIE"
+			fi
+			mv "$OBECNY" "$BIEZACY_KATALOG/Pliki $ROZSZERZENIE"
+		fi
+		((I++))
+	done
+}
+
+AutoCleanPierwszaLitera(){
+	local I=0
+	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
+	local ALL_FILES=($BIEZACY_KATALOG/*)
+	while [ $I -lt $ILOSC_LINII ]; do
+		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
+		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
+			local PIERWSZALITERA=$(echo $OBECNY | awk -F/ '{print $NF}' | cut -c 1)
+			PIERWSZALITERA=${PIERWSZALITERA^}
+			if [ ! -d "$BIEZACY_KATALOG/Pliki $PIERWSZALITERA" ]; then
+				mkdir "$BIEZACY_KATALOG/Pliki $PIERWSZALITERA"
+			fi
+			mv "$OBECNY" "$BIEZACY_KATALOG/Pliki $PIERWSZALITERA"
+		fi
+		((I++))
+	done
+}
+
+AutoCleanData(){
+	local I=0
+	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
+	local ALL_FILES=($BIEZACY_KATALOG/*)
+	while [ $I -lt $ILOSC_LINII ]; do
+		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
+		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
+			local ROK=$(date +%F -r $OBECNY | awk -F/ '{print $NF}' | awk -F- '{print $1}')
+			if [ ! -d "$BIEZACY_KATALOG/Pliki $ROK" ]; then
+				mkdir "$BIEZACY_KATALOG/Pliki $ROK"
+			fi
+			mv "$OBECNY" "$BIEZACY_KATALOG/Pliki $ROK"
+		fi
+		((I++))
+	done
+}
+
+AutoClean1(){
+	case $TRYB_SORTOWANIA in
+	$PO_ROZSZERZENIU)
+	AutoCleanRozszerzenie
+	;;
+	$PO_PIERWSZEJ_LITERZE)
+	AutoCleanPierwszaLitera
+	;;
+	$PO_DACIE)
+	AutoCleanData
+	;;
+	esac
+}
+AutoClean2(){
+	MENU11="1. Tryb wedlug rozszerzenia pliku"
+	MENU22="2. Alfabetycznie (katalogi tworzone po pierwsze literze nazwy)"
+	MENU33="3. Po dacie ostatniej modyfikacji (ROK)"
+	MENUMENU=("$MENU11" "$MENU22" "$MENU33")
+	CHOICECHOICE=$(zenity --list --column="Witamy w AutoClean!" "${MENUMENU[@]}" --height 300 --width 600)
+	case "$CHOICECHOICE" in
+	$MENU11)
+		TRYB_SORTOWANIA=$PO_ROZSZERZENIU
+		;;
+	$MENU22)
+		TRYB_SORTOWANIA=$PO_PIERWSZEJ_LITERZE
+		;;
+	$MENU33)
+		TRYB_SORTOWANIA=$PO_DACIE
+		;;
+	$EMPTY)
+		;;
+	esac
+	echo $TRYB_SORTOWANIA
+}
+AutoClean3(){
+	I=0
+	ILOSC_LINII=$(ls | wc -l)
+	while [ $I -le $ILOSC_LINII ]; do
+		OBECNY=$(ls | head -$I | tail -1)
+		if [[ ! -d $OBECNY  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
+			DATA=$(date +%F -r $OBECNY)
+			DATA+="_"
+			DESTINATION=$DATA
+			DESTINATION+=$OBECNY
+			mv $OBECNY $DESTINATION
+		fi
+		((I++))
+	done
+}
+AutoClean4(){
+	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
+	local I=0
+	echo "Sprzatam w $BIEZACY_KATALOG"
+	shopt -s nullglob
+	local ALL_FILES=($BIEZACY_KATALOG/*)
+	shopt -u nullglob
+	while [ $I -lt $ILOSC_LINII ]; do
+		local OBECNY=$( echo "${ALL_FILES[$I]}")
+		if [[ -d $OBECNY ]]; then
+			local BEFORE_BIEZACY_KATALOG=$BIEZACY_KATALOG
+			BIEZACY_KATALOG="$OBECNY"
+			AutoClean4
+			BIEZACY_KATALOG=$BEFORE_BIEZACY_KATALOG
+		fi
+		((I++))
+	done
+	AutoClean1
+}
