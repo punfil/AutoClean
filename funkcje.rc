@@ -1,27 +1,32 @@
 #!/bin/bash
-
+#Plik z funkcjami dla programu AutoClean.
+#
+#Zmienna globalna sluzaca jako punkt wyjsciowy dla funkcji sortujacych,
+#zmieniana w trakcie pracy
 BIEZACY_KATALOG="."
 
 Pomoc(){
-	man ./$PLIK_Z_MANUALEM
+	man ./"$PLIK_Z_MANUALEM"
 }
 
 Wersja(){
-	if [ $OKIENKOWY -eq 1 ]; then
-		zenity --info --title "Wynik wyszukiwania" --text "Plik zostal odnaleziony!" --width 200
+	if [ "$OKIENKOWY" -eq "$W_OKNIE" ]; then
+		zenity --info --title "Informacje o programie" --text "Autor programu: Wojciech Panfil 184657.\nWersja programu: $WERSJA" --width 300
 	else
-		echo "Wersja programu: $WERSJA"
+		echo "Autor programu: Wojciech Panfil 184657" 
+		echo "Wersja programu: $WERSJA."
 	fi
 }
 
+#Funkcja sortujaca pliki w katalogu $BIEZACYKATALOG wedlug rozszerzenia pliku
 AutoCleanRozszerzenie(){
 	local I=0
 	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
-	local ALL_FILES=($BIEZACY_KATALOG/*)
+	local ALL_FILES=("$BIEZACY_KATALOG"/*)
 	while [ $I -lt $ILOSC_LINII ]; do
 		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
-		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
-			local ROZSZERZENIE=$(echo $OBECNY | awk -F. '{print $NF}')
+		if [[ ! -d "$OBECNY"  && "$OBECNY" != "$PLIK_WYWOLANIA" && "$OBECNY" != "$PLIK_Z_FUNKCJAMI" && "$OBECNY" != "$PLIK_Z_MANUALEM" ]]; then
+			local ROZSZERZENIE=$(echo "$OBECNY" | awk -F. '{print $NF}')
 			if [ ! -d "$BIEZACY_KATALOG/Pliki $ROZSZERZENIE" ]; then
 				mkdir "$BIEZACY_KATALOG/Pliki $ROZSZERZENIE"
 			fi
@@ -31,14 +36,15 @@ AutoCleanRozszerzenie(){
 	done
 }
 
+#Funkcja sortujaca pliki w katalogu $BIEZACYKATALOG wedlug pierwszej litery pliku
 AutoCleanPierwszaLitera(){
 	local I=0
 	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
-	local ALL_FILES=($BIEZACY_KATALOG/*)
+	local ALL_FILES=("$BIEZACY_KATALOG"/*)
 	while [ $I -lt $ILOSC_LINII ]; do
 		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
-		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
-			local PIERWSZALITERA=$(echo $OBECNY | awk -F/ '{print $NF}' | cut -c 1)
+		if [[ ! -d "$OBECNY"  && "$OBECNY" != "$PLIK_WYWOLANIA" && "$OBECNY" != "$PLIK_Z_FUNKCJAMI" && "$OBECNY" != "$PLIK_Z_MANUALEM" ]]; then
+			local PIERWSZALITERA=$(echo "$OBECNY" | awk -F/ '{print $NF}' | cut -c 1)
 			PIERWSZALITERA=${PIERWSZALITERA^}
 			if [ ! -d "$BIEZACY_KATALOG/Pliki $PIERWSZALITERA" ]; then
 				mkdir "$BIEZACY_KATALOG/Pliki $PIERWSZALITERA"
@@ -49,14 +55,15 @@ AutoCleanPierwszaLitera(){
 	done
 }
 
+#Funkcja sortujaca pliki w katalogu $BIEZACYKATALOG wedlug roku ostatniej modyfikacji
 AutoCleanData(){
 	local I=0
 	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
-	local ALL_FILES=($BIEZACY_KATALOG/*)
+	local ALL_FILES=("$BIEZACY_KATALOG"/*)
 	while [ $I -lt $ILOSC_LINII ]; do
 		local OBECNY=$( echo "${ALL_FILES[$I]}" | cut -c 3-)
-		if [[ ! -d "$OBECNY"  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
-			local ROK=$(date +%F -r $OBECNY | awk -F/ '{print $NF}' | awk -F- '{print $1}')
+		if [[ ! -d "$OBECNY"  && "$OBECNY" != "$PLIK_WYWOLANIA" && "$OBECNY" != "$PLIK_Z_FUNKCJAMI" && "$OBECNY" != "$PLIK_Z_MANUALEM" ]]; then
+			local ROK=$(date +%F -r "$OBECNY" | awk -F/ '{print $NF}' | awk -F- '{print $1}')
 			if [ ! -d "$BIEZACY_KATALOG/Pliki $ROK" ]; then
 				mkdir "$BIEZACY_KATALOG/Pliki $ROK"
 			fi
@@ -66,69 +73,100 @@ AutoCleanData(){
 	done
 }
 
+#Funkcja sortujaca pliki w katalogu $BIEZACYKATALOG. 
+#Wywoluje funkcje pomocnicze w zaleznosci od tego, po czym uzytkownik chce sortowac
 AutoClean1(){
-	case $TRYB_SORTOWANIA in
+	case "$TRYB_SORTOWANIA" in
 	$PO_ROZSZERZENIU)
-	AutoCleanRozszerzenie
-	;;
+		AutoCleanRozszerzenie
+		;;
 	$PO_PIERWSZEJ_LITERZE)
-	AutoCleanPierwszaLitera
-	;;
+		AutoCleanPierwszaLitera
+		;;
 	$PO_DACIE)
-	AutoCleanData
-	;;
+		AutoCleanData
+		;;
 	esac
 }
+
+#Funkcja pozwalajaca zmienic po czym sortujemy
 AutoClean2(){
 	MENU11="1. Tryb wedlug rozszerzenia pliku"
 	MENU22="2. Alfabetycznie (katalogi tworzone po pierwsze literze nazwy)"
 	MENU33="3. Po dacie ostatniej modyfikacji (ROK)"
-	MENUMENU=("$MENU11" "$MENU22" "$MENU33")
-	CHOICECHOICE=$(zenity --list --column="Witamy w AutoClean!" "${MENUMENU[@]}" --height 300 --width 600)
-	case "$CHOICECHOICE" in
-	$MENU11)
-		TRYB_SORTOWANIA=$PO_ROZSZERZENIU
+	case "$OKIENKOWY" in
+	$W_TERMINALU)
+		echo $MENU11
+		echo $MENU22
+		echo $MENU33
+		read CHOICECHOICE
+		case "$CHOICECHOICE" in
+		1)
+			TRYB_SORTOWANIA="$PO_ROZSZERZENIU"
+			;;
+		2)
+			TRYB_SORTOWANIA="$PO_PIERWSZEJ_LITERZE"
+			;;
+		3)
+			TRYB_SORTOWANIA="$PO_DACIE"
+			;;
+		*)
+			;;
+		esac
 		;;
-	$MENU22)
-		TRYB_SORTOWANIA=$PO_PIERWSZEJ_LITERZE
-		;;
-	$MENU33)
-		TRYB_SORTOWANIA=$PO_DACIE
-		;;
-	$EMPTY)
+	$W_OKNIE)
+		MENUMENU=("$MENU11" "$MENU22" "$MENU33")
+		CHOICECHOICE=$(zenity --list --column="Witamy w AutoClean!" "${MENUMENU[@]}" --height 300 --width 600)
+		case "$CHOICECHOICE" in
+		$MENU11)
+			TRYB_SORTOWANIA="$PO_ROZSZERZENIU"
+			;;
+		$MENU22)
+			TRYB_SORTOWANIA="$PO_PIERWSZEJ_LITERZE"
+			;;
+		$MENU33)
+			TRYB_SORTOWANIA="$PO_DACIE"
+			;;
+		$EMPTY)
+			;;
+		esac
 		;;
 	esac
-	echo $TRYB_SORTOWANIA
 }
+
+#Funkcja dodajaca date modyfikacji w formacie RRRR-MM-DD na poczatku pliku
+#Np. Dla pliku plik.txt przykladowe wyjscie to 2019-12-20_plik.txt
 AutoClean3(){
-	I=0
+	I=1
 	ILOSC_LINII=$(ls | wc -l)
 	while [ $I -le $ILOSC_LINII ]; do
 		OBECNY=$(ls | head -$I | tail -1)
-		if [[ ! -d $OBECNY  && $OBECNY != $PLIK_WYWOLANIA && $OBECNY != $PLIK_Z_FUNKCJAMI && $OBECNY != $PLIK_Z_MANUALEM ]]; then
-			DATA=$(date +%F -r $OBECNY)
+		if [[ ! -d "$OBECNY"  && "$OBECNY" != "$PLIK_WYWOLANIA" && "$OBECNY" != "$PLIK_Z_FUNKCJAMI" && "$OBECNY" != "$PLIK_Z_MANUALEM" ]]; then
+			DATA=$(date +%F -r "$OBECNY")
 			DATA+="_"
-			DESTINATION=$DATA
-			DESTINATION+=$OBECNY
-			mv $OBECNY $DESTINATION
+			DESTINATION="$DATA"
+			DESTINATION+="$OBECNY"
+			mv "$OBECNY" "$DESTINATION"
 		fi
 		((I++))
 	done
 }
+
+#Funkcja wywolujaca AutoClean1 (funkcja sortujaca) w katalogu $BIEZACYKATALOG i podkatalogach
+#Uwaga! Funkcja wywoluje siebie rekurencyjnie w znalezionym podkatalogu.
 AutoClean4(){
 	local ILOSC_LINII=$(ls "$BIEZACY_KATALOG" | wc -l)
 	local I=0
-	echo "Sprzatam w $BIEZACY_KATALOG"
 	shopt -s nullglob
-	local ALL_FILES=($BIEZACY_KATALOG/*)
+	local ALL_FILES=("$BIEZACY_KATALOG"/*)
 	shopt -u nullglob
 	while [ $I -lt $ILOSC_LINII ]; do
 		local OBECNY=$( echo "${ALL_FILES[$I]}")
 		if [[ -d $OBECNY ]]; then
-			local BEFORE_BIEZACY_KATALOG=$BIEZACY_KATALOG
+			local BEFORE_BIEZACY_KATALOG="$BIEZACY_KATALOG"
 			BIEZACY_KATALOG="$OBECNY"
 			AutoClean4
-			BIEZACY_KATALOG=$BEFORE_BIEZACY_KATALOG
+			BIEZACY_KATALOG="$BEFORE_BIEZACY_KATALOG"
 		fi
 		((I++))
 	done
