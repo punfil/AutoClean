@@ -1,30 +1,42 @@
-.TH man 1 "28.04.2021" "1.0" "Manual-AutoClean"
+.TH "AutoClean" "29.04.2021"
 .SH NAME
 .B AutoClean
-- wyswietla okno z aplikacja do porzadkowania plikow lub robi to w terminalu.
-Nie dotyka jednak plikow skryptu
+- aplikacja do segregowania plikow
 .SH SYNOPSIS
-autoclean.sh [SHORT-OPTION]
+.B AutoClean
+[ -f | -h | -v ]
 .SH DESCRIPTION
-.B Aplikacja pozwala na:
-
-\[bu] automatyczne porzadkowanie plikow poprzez katalogowanie
-
-\[bu] mozliwosc zmiany klucza katalogowania (rok, inicjal, rozszerzenie)
-
-\[bu] dopisywanie daty modyfikacji do nazwy pliku
-
-\[bu] automatyczne segregowanie plikow ze wszystkich podkatalogow
-.SH OPTIONS
--h - wyswietla pomoc korzystania z aplikacji
-
--v - wyswietla informacje o autorze i wersji
-
--f - wyswietla okno aplikacji - tryb okienkowy
-.SH AUTHOR
-184657 Wojciech Panfil
+Uruchamia okienkowa lub terminalowa aplikacje.
+.PP
+Uzytkownik moze skorzystac z nastepujacych funkcjonalnosci:
+ -automatyczne katalogowanie,
+ -wybor sposobu katalogowania na 3 sposoby,
+ -dodanie daty modyfikacji do nazwy pliku,
+ -automatyczne katalogowanie subkatalogow.
+.PP
+Tryb okienkowy jest prezentowany przez 
+.BR zenity .
+.SS Options
+.TP
+.B -f
+Wlacz program w trybie konsolowym (domyslnie okienkowy). Jezeli uzywasz tej opcji uzyj jej przed innymi!
+.TP
+.B -h
+Otwiera manual, ktory wlasnie czytasz
+.TP
+.B -v
+Wyswietla informacje o wersji i autorze
+.SH FILES
+.TP
+.B AutoClean.sh
+Plik skryptu
+.TP
+.B funkcje.rc
+Funkcje niezbedne do prawidlowego funkcjonowania skryptu
+.SH "SEE ALSO"
+zenity(1)
 .SH BUGS
-Bład segregowania po rozszerzeniu przy braku rozszerzenia pliku
-Opinie i uwagi prosze wysylac na adres mail: s184657@student.pg.edu.pl
-.SH SEE ALSO
-Wiecej informacji pod adresem sekurak.pl
+Brak :) Jesli znalazles buga, prosze o kontakt.
+.SH AUTHOR
+Wojciech Panfil 184657
+.I s184657@student.pg.edu.pl
